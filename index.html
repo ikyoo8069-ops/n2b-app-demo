@@ -589,11 +589,12 @@
             let policyHTML = '';
             if (matchResult.matches && matchResult.matches.length > 0) {
                 matchResult.matches.slice(0, 3).forEach((policy, index) => {
+                    const programName = policy.program ? policy.program.name : '정책명 없음';
                     policyHTML += `
                         <div class="policy-card">
                             <span class="match-score">매칭도 ${policy.score}/10</span>
-                            <div class="title">${index + 1}위. ${policy.name}</div>
-                            <div class="description">${policy.reason || policy.description || ''}</div>
+                            <div class="title">${index + 1}위. ${programName}</div>
+                            <div class="description">${policy.reason || ''}</div>
                         </div>
                     `;
                 });
