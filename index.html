@@ -379,7 +379,7 @@
         </div>
 
         <div class="footer">
-            <p>© 2025 N2B Framework by Brian Yoo | 창업일: 2025.12.08</p>
+            <p>© 2025 N2B Framework by Brian Yoo | SINCE: 2025.12.08</p>
         </div>
     </div>
 
@@ -552,10 +552,8 @@
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    
                     proposalText: businessPlan,
                     apiKey: apiKey
-                    
                 })
             });
             
@@ -572,9 +570,8 @@
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    proposalText: businessPlan,
-                    apiKey: apiKey
-    
+                    apiKey: apiKey,
+                    n2bAnalysis: analyzeResult
                 })
             });
             
@@ -585,9 +582,9 @@
             const matchResult = await matchResponse.json();
             
             // 결과 표시
-            document.getElementById('notResult').textContent = analyzeResult.not || '분석 결과 없음';
-            document.getElementById('butResult').textContent = analyzeResult.but || '분석 결과 없음';
-            document.getElementById('becauseResult').textContent = analyzeResult.because || '분석 결과 없음';
+            document.getElementById('notResult').textContent = analyzeResult.N || analyzeResult.not || '분석 결과 없음';
+            document.getElementById('butResult').textContent = analyzeResult.B || analyzeResult.but || '분석 결과 없음';
+            document.getElementById('becauseResult').textContent = analyzeResult.C || analyzeResult.because || '분석 결과 없음';
             
             let policyHTML = '';
             if (matchResult.matches && matchResult.matches.length > 0) {
