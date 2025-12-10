@@ -3,569 +3,237 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>N2B - 정부 R&D 정책사업 매칭 시스템</title>
+    <title>N2B 정부지원사업 매칭 v3.1</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
-        }
-        .header {
-            text-align: center;
-            color: white;
-            margin-bottom: 30px;
-        }
-        .header h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
-        }
-        .header p {
-            font-size: 1.1em;
-            opacity: 0.9;
-        }
-        .card {
-            background: white;
-            border-radius: 15px;
-            padding: 25px;
-            margin-bottom: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-        }
-        .card h2 {
-            color: #667eea;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .mode-selector {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-        .mode-btn {
-            flex: 1;
-            padding: 15px;
-            border: 2px solid #667eea;
-            border-radius: 10px;
-            background: white;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        .mode-btn.active {
-            background: #667eea;
-            color: white;
-        }
-        .mode-btn:hover {
-            transform: translateY(-2px);
-        }
-        .api-input {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 14px;
-            margin-bottom: 10px;
-        }
-        .api-input:focus {
-            border-color: #667eea;
-            outline: none;
-        }
-        .sample-cards {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-        .sample-card {
-            flex: 1;
-            padding: 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        .sample-card:hover, .sample-card.selected {
-            border-color: #667eea;
-            background: #f0f4ff;
-        }
-        .sample-card h4 {
-            color: #667eea;
-            margin-bottom: 8px;
-        }
-        .sample-card p {
-            font-size: 13px;
-            color: #666;
-        }
-        textarea {
-            width: 100%;
-            height: 150px;
-            padding: 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            font-size: 14px;
-            resize: vertical;
-        }
-        textarea:focus {
-            border-color: #667eea;
-            outline: none;
-        }
-        .analyze-btn {
-            width: 100%;
-            padding: 15px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: transform 0.3s;
-        }
-        .analyze-btn:hover:not(:disabled) {
-            transform: translateY(-2px);
-        }
-        .analyze-btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-        .result-section {
-            display: none;
-        }
-        .result-section.show {
-            display: block;
-        }
-        .n2b-result {
-            margin-bottom: 15px;
-        }
-        .n2b-label {
-            display: inline-block;
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-weight: bold;
-            margin-bottom: 8px;
-        }
-        .n2b-label.not { background: #ffebee; color: #c62828; }
-        .n2b-label.but { background: #e3f2fd; color: #1565c0; }
-        .n2b-label.because { background: #e8f5e9; color: #2e7d32; }
-        .n2b-content {
-            padding: 10px 15px;
-            background: #f5f5f5;
-            border-radius: 8px;
-            line-height: 1.6;
-        }
-        .policy-card {
-            border: 2px solid #e0e0e0;
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 15px;
-            transition: all 0.3s;
-        }
-        .policy-card:hover {
-            border-color: #667eea;
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
-        }
-        .policy-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 12px;
-        }
-        .policy-title {
-            font-size: 16px;
-            font-weight: bold;
-            color: #333;
-            flex: 1;
-        }
-        .policy-rank {
-            color: #667eea;
-            font-weight: bold;
-            margin-right: 8px;
-        }
-        .match-score {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 13px;
-            font-weight: bold;
-            white-space: nowrap;
-        }
-        .policy-meta {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 10px;
-            flex-wrap: wrap;
-        }
-        .policy-meta-item {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            font-size: 13px;
-            color: #666;
-        }
-        .policy-meta-item.deadline {
-            color: #c62828;
-            font-weight: bold;
-        }
-        .policy-meta-item.category {
-            background: #e3f2fd;
-            color: #1565c0;
-            padding: 3px 10px;
-            border-radius: 12px;
-        }
-        .policy-reason {
-            font-size: 14px;
-            color: #555;
-            line-height: 1.6;
-            margin-bottom: 12px;
-        }
-        .policy-link {
-            display: inline-block;
-            padding: 8px 16px;
-            background: #667eea;
-            color: white;
-            text-decoration: none;
-            border-radius: 6px;
-            font-size: 13px;
-            transition: background 0.3s;
-        }
-        .policy-link:hover {
-            background: #5a6fd6;
-        }
-        .loading-section {
-            display: none;
-            text-align: center;
-            padding: 40px;
-        }
-        .loading-section.show {
-            display: block;
-        }
-        .spinner {
-            width: 50px;
-            height: 50px;
-            border: 4px solid #e0e0e0;
-            border-top-color: #667eea;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 20px;
-        }
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        .demo-notice {
-            display: none;
-            background: #fff3e0;
-            border: 1px solid #ffb74d;
-            border-radius: 8px;
-            padding: 12px;
-            margin-bottom: 15px;
-            font-size: 14px;
-            color: #e65100;
-        }
-        .demo-notice.show {
-            display: block;
-        }
-        .realtime-badge {
-            display: inline-block;
-            background: #4caf50;
-            color: white;
-            padding: 3px 8px;
-            border-radius: 4px;
-            font-size: 11px;
-            margin-left: 10px;
-        }
-        .footer {
-            text-align: center;
-            color: white;
-            opacity: 0.8;
-            margin-top: 30px;
-            font-size: 14px;
-        }
-        .helper-text {
-            font-size: 12px;
-            color: #888;
-            margin-top: 5px;
-        }
+        .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .card-hover:hover { transform: translateY(-2px); box-shadow: 0 10px 40px rgba(0,0,0,0.15); }
     </style>
 </head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>🎯 N2B</h1>
-            <p>정부 R&D 정책사업 매칭 시스템 <span class="realtime-badge">실시간 웹검색</span></p>
+<body class="bg-gray-50 min-h-screen">
+    <header class="gradient-bg text-white py-6 shadow-lg">
+        <div class="container mx-auto px-4">
+            <h1 class="text-2xl font-bold">🚀 N2B 정부지원사업 매칭</h1>
+            <p class="text-purple-100 mt-1">v3.1 - 지역 필터링 지원</p>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-6">
+        <!-- API Key -->
+        <div class="bg-white rounded-xl shadow-md p-4 mb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-2">🔑 Anthropic API Key</label>
+            <input type="password" id="apiKey" class="w-full px-4 py-3 border rounded-lg" placeholder="sk-ant-api...">
+            <p class="text-xs text-gray-500 mt-1">API 키는 <a href="https://console.anthropic.com" target="_blank" class="text-purple-600 underline">Anthropic Console</a>에서 발급받을 수 있습니다.</p>
         </div>
 
-        <div class="card">
-            <h2>🚀 시작하기</h2>
-            <div class="mode-selector">
-                <button class="mode-btn active" onclick="setMode('demo')" id="demoBtn">
-                    <strong>🎬 데모 체험</strong><br>
-                    <small>API 키 없이 바로 체험해보세요!</small>
-                </button>
-                <button class="mode-btn" onclick="setMode('real')" id="realBtn">
-                    <strong>🔑 실제 분석</strong><br>
-                    <small>본인 API 키로 실시간 검색</small>
-                </button>
+        <!-- Region -->
+        <div class="bg-white rounded-xl shadow-md p-4 mb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-2">📍 지역 선택</label>
+            <select id="regionSelect" class="w-full px-4 py-3 border rounded-lg bg-white">
+                <option value="전체">🇰🇷 전체 (전국)</option>
+                <option value="서울">서울특별시</option>
+                <option value="부산">부산광역시</option>
+                <option value="대구">대구광역시</option>
+                <option value="인천">인천광역시</option>
+                <option value="광주">광주광역시</option>
+                <option value="대전">대전광역시</option>
+                <option value="울산">울산광역시</option>
+                <option value="세종">세종특별자치시</option>
+                <option value="경기">경기도</option>
+                <option value="강원">강원특별자치도</option>
+                <option value="충북">충청북도</option>
+                <option value="충남">충청남도</option>
+                <option value="전북">전북특별자치도</option>
+                <option value="전남">전라남도</option>
+                <option value="경북">경상북도</option>
+                <option value="경남">경상남도</option>
+                <option value="제주">제주특별자치도</option>
+            </select>
+        </div>
+
+        <!-- 사업계획 입력 -->
+        <div class="bg-white rounded-xl shadow-md p-4 mb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-2">📝 사업계획 입력</label>
+            <p class="text-xs text-gray-500 mb-2">샘플을 선택하거나 직접 입력하세요:</p>
+            <div class="flex flex-wrap gap-2 mb-3">
+                <button onclick="loadSample('health')" class="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm">🏥 AI 헬스케어</button>
+                <button onclick="loadSample('farm')" class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm">🌱 스마트팜</button>
+                <button onclick="loadSample('recycle')" class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm">♻️ 폐플라스틱 재활용</button>
             </div>
-            <div id="apiKeySection" style="display: none;">
-                <input type="password" class="api-input" id="apiKey" placeholder="Anthropic API 키">
-                <p class="helper-text">💡 API 키는 <a href="https://console.anthropic.com/" target="_blank">Anthropic Console</a>에서 발급받을 수 있습니다.</p>
-            </div>
+            <textarea id="proposalText" rows="5" class="w-full px-4 py-3 border rounded-lg" placeholder="사업 아이디어를 입력하세요..."></textarea>
         </div>
 
-        <div class="card">
-            <h2>📝 사업계획 입력</h2>
-            <p style="margin-bottom: 15px; color: #666;">샘플을 선택하거나 직접 입력하세요:</p>
-            <div class="sample-cards">
-                <div class="sample-card" onclick="selectSample(1)">
-                    <h4>🤖 AI 헬스케어</h4>
-                    <p>AI 기반 개인 맞춤형 건강관리 플랫폼 개발</p>
-                </div>
-                <div class="sample-card" onclick="selectSample(2)">
-                    <h4>🌱 스마트팜</h4>
-                    <p>IoT 센서 기반 스마트 농업 솔루션</p>
-                </div>
-                <div class="sample-card" onclick="selectSample(3)">
-                    <h4>♻️ 폐플라스틱 재활용</h4>
-                    <p>AI 기반 폐플라스틱 자동 분류 시스템</p>
-                </div>
-            </div>
-            <textarea id="businessPlan" placeholder="사업계획을 입력하세요..."></textarea>
+        <!-- 버튼 -->
+        <div class="flex gap-4 mb-6">
+            <button onclick="analyzeN2B()" class="flex-1 gradient-bg text-white py-4 rounded-xl font-bold">1️⃣ N2B 분석</button>
+            <button onclick="matchPrograms()" id="matchBtn" disabled class="flex-1 bg-gray-400 text-white py-4 rounded-xl font-bold disabled:opacity-50">2️⃣ 지원사업 매칭</button>
         </div>
 
-        <button class="analyze-btn" onclick="analyze()" id="analyzeBtn">
-            🔍 N2B 분석 및 정책 매칭 시작
-        </button>
-
-        <div class="demo-notice" id="demoNotice">
-            ⚠️ <strong>데모 모드</strong>: 미리 준비된 샘플 결과입니다. 실시간 검색은 API 키를 입력해주세요.
+        <!-- 로딩 -->
+        <div id="loading" class="hidden text-center py-8">
+            <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-purple-500 border-t-transparent"></div>
+            <p class="mt-4 text-gray-600">분석 중...</p>
         </div>
 
-        <div class="loading-section" id="loadingSection">
-            <div class="spinner"></div>
-            <p>AI가 분석 중입니다... (실시간 웹검색 포함)</p>
-        </div>
-
-        <div class="result-section" id="resultSection">
-            <div class="card">
-                <h2>📊 N2B 분석 결과</h2>
-                <div class="n2b-result">
-                    <div class="n2b-label not">N (NOT) 문제점 포착</div>
-                    <div class="n2b-content" id="resultN"></div>
+        <!-- N2B 결과 -->
+        <div id="n2bResult" class="hidden bg-white rounded-xl shadow-md p-4 mb-4">
+            <h2 class="text-lg font-bold text-gray-800 mb-4">📊 N2B 분석 결과</h2>
+            <div class="space-y-3">
+                <div class="bg-red-50 border-l-4 border-red-500 p-3 rounded">
+                    <h3 class="font-bold text-red-700 text-sm">N (Not) - 문제점</h3>
+                    <p id="resultN" class="text-gray-700 text-sm mt-1"></p>
                 </div>
-                <div class="n2b-result">
-                    <div class="n2b-label but">B (BUT) 해결 솔루션</div>
-                    <div class="n2b-content" id="resultB"></div>
+                <div class="bg-blue-50 border-l-4 border-blue-500 p-3 rounded">
+                    <h3 class="font-bold text-blue-700 text-sm">B (But) - 솔루션</h3>
+                    <p id="resultB" class="text-gray-700 text-sm mt-1"></p>
                 </div>
-                <div class="n2b-result">
-                    <div class="n2b-label because">C (BECAUSE) 근거 및 차별점</div>
-                    <div class="n2b-content" id="resultC"></div>
+                <div class="bg-green-50 border-l-4 border-green-500 p-3 rounded">
+                    <h3 class="font-bold text-green-700 text-sm">C (Because) - 근거</h3>
+                    <p id="resultC" class="text-gray-700 text-sm mt-1"></p>
+                </div>
+                <div class="bg-purple-50 p-3 rounded">
+                    <h3 class="font-bold text-purple-700 text-sm">🏷️ 키워드</h3>
+                    <div id="resultKeywords" class="flex flex-wrap gap-2 mt-2"></div>
                 </div>
             </div>
+        </div>
 
-            <div class="card">
-                <h2>🎯 추천 정부지원사업 Top 3 <span class="realtime-badge">실시간</span></h2>
-                <div id="policyResults"></div>
+        <!-- 매칭 결과 -->
+        <div id="matchResult" class="hidden">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-bold text-gray-800">🎯 매칭된 지원사업</h2>
+                <span id="regionBadge" class="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm"></span>
             </div>
+            <div id="programList" class="space-y-4"></div>
         </div>
-
-        <div class="footer">
-            <p>© 2025 N2B Framework by Brian Yoo | SINCE: 2025.12.08</p>
-        </div>
-    </div>
+    </main>
 
     <script>
-        const BACKEND_URL = 'https://n2b-backend.onrender.com';
-        
-        let currentMode = 'demo';
-        
+        let n2bAnalysis = null;
+        const API_BASE = 'https://n2b-backend.onrender.com';
+
         const samples = {
-            1: `AI 기반 개인 맞춤형 건강관리 플랫폼 개발
-
-현재 건강관리 앱들은 단순 기록 위주로, 개인별 맞춤 건강 조언을 제공하지 못하고 있습니다.
-
-저희는 AI를 활용하여 사용자의 건강 데이터(활동량, 수면, 식단 등)를 분석하고, 개인별 맞춤형 건강 관리 솔루션을 제공하는 플랫폼을 개발하고자 합니다.
-
-주요 기능:
-- AI 기반 건강 위험도 예측
-- 개인 맞춤형 운동/식단 추천
-- 실시간 건강 모니터링
-- 전문가 연결 서비스`,
-
-            2: `IoT 센서 기반 스마트 농업 솔루션
-
-현재 농업 현장에서는 경험에 의존한 재배가 이루어지고 있어, 기후변화에 대응하기 어렵고 생산성 예측이 불가능합니다.
-
-저희는 IoT 센서와 AI를 결합하여 토양, 기후, 작물 상태를 실시간 모니터링하고 최적의 재배 환경을 자동 제어하는 스마트팜 솔루션을 개발합니다.
-
-주요 기능:
-- 토양/환경 센서 네트워크
-- AI 기반 생육 예측
-- 자동 관수/시비 시스템
-- 병해충 조기 경보`,
-
-            3: `AI 기반 폐플라스틱 자동 분류 시스템
-
-현재 폐플라스틱 재활용률이 낮은 주요 원인은 수작업 분류의 한계로 인한 오염과 혼합입니다.
-
-저희는 컴퓨터 비전과 AI를 활용하여 폐플라스틱을 재질별로 자동 분류하는 시스템을 개발하여 재활용률을 획기적으로 높이고자 합니다.
-
-주요 기능:
-- 실시간 이미지 인식 분류
-- 재질별 자동 분리 컨베이어
-- 오염도 감지 시스템
-- 재활용 데이터 분석 대시보드`
+            health: '저는 IoT 센서와 AI를 결합하여 토양, 기후, 작물 상태를 실시간 모니터링하고 최적의 재배 환경을 자동 제어하는 스마트팜 솔루션을 개발합니다.',
+            farm: '저는 IoT 센서와 AI를 결합하여 토양, 기후, 작물 상태를 실시간 모니터링하고 최적의 재배 환경을 자동 제어하는 스마트팜 솔루션을 개발합니다.',
+            recycle: 'AI 기반 폐플라스틱 자동 분류 시스템을 개발하여 재활용률을 높이고 환경오염을 줄이는 솔루션을 제공합니다.'
         };
 
-        const demoResults = {
-            1: {
-                n2b: {
-                    N: "현재 건강관리 앱들은 단순한 데이터 기록에 그치고 있어, 개인별 맞춤 건강 관리 서비스를 제공하지 못하고 있습니다.",
-                    B: "AI를 활용하여 사용자의 건강 데이터를 분석하고, 개인별 맞춤형 건강 관리 솔루션을 제공하는 플랫폼을 개발합니다.",
-                    C: "AI 기반 개인화된 분석을 통해 사용자별 건강 위험을 조기에 파악하고 예방할 수 있습니다."
-                },
-                policies: [
-                    { title: "2025년 AI융합 헬스케어 기술개발 지원사업", category: "기술", agency: "과학기술정보통신부", deadline: "2025-02-28", url: "https://www.bizinfo.go.kr", score: 9, reason: "AI 헬스케어 플랫폼 개발에 직접 부합하는 R&D 지원사업입니다." },
-                    { title: "2025년 창업도약패키지 지원사업", category: "창업", agency: "중소벤처기업부", deadline: "2025-03-15", url: "https://www.k-startup.go.kr", score: 8, reason: "초기 창업기업의 사업화 자금과 멘토링을 지원합니다." },
-                    { title: "2025년 바이오헬스 기술개발 지원사업", category: "기술", agency: "보건복지부", deadline: "2025-01-31", url: "https://www.bizinfo.go.kr", score: 7, reason: "헬스케어 기술의 상용화를 지원합니다." }
-                ]
-            },
-            2: {
-                n2b: {
-                    N: "현재 농업 현장에서는 경험에 의존한 재배가 이루어지고 있어 기후변화 대응이 어렵습니다.",
-                    B: "IoT 센서와 AI를 결합하여 최적의 재배 환경을 자동 제어하는 스마트팜 솔루션을 개발합니다.",
-                    C: "IoT-AI 융합 기술로 농업 생산성을 30% 이상 향상시킬 수 있습니다."
-                },
-                policies: [
-                    { title: "2025년 스마트팜 혁신밸리 지원사업", category: "기술", agency: "농림축산식품부", deadline: "2025-02-15", url: "https://www.bizinfo.go.kr", score: 9, reason: "스마트팜 기술 개발 및 실증에 직접 부합합니다." },
-                    { title: "2025년 농식품 ICT융복합 지원사업", category: "기술", agency: "농촌진흥청", deadline: "2025-03-01", url: "https://www.bizinfo.go.kr", score: 8, reason: "IoT 기반 농업 기술 개발을 지원합니다." },
-                    { title: "2025년 청년창업농 영농정착 지원", category: "창업", agency: "농림축산식품부", deadline: "2025-01-31", url: "https://www.bizinfo.go.kr", score: 7, reason: "농업 분야 청년 창업을 지원합니다." }
-                ]
-            },
-            3: {
-                n2b: {
-                    N: "현재 폐플라스틱 재활용률이 낮은 주요 원인은 수작업 분류의 한계입니다.",
-                    B: "컴퓨터 비전과 AI를 활용하여 폐플라스틱을 재질별로 자동 분류하는 시스템을 개발합니다.",
-                    C: "AI 기반 자동 분류로 재활용률을 50% 이상 향상시킬 수 있습니다."
-                },
-                policies: [
-                    { title: "2025년 자원순환 기술개발 지원사업", category: "기술", agency: "환경부", deadline: "2025-02-28", url: "https://www.bizinfo.go.kr", score: 9, reason: "폐자원 재활용 기술 개발에 직접 부합합니다." },
-                    { title: "2025년 환경산업 혁신성장 지원사업", category: "기술", agency: "환경부", deadline: "2025-03-15", url: "https://www.bizinfo.go.kr", score: 8, reason: "환경 분야 기술 혁신 기업을 지원합니다." },
-                    { title: "2025년 탄소중립 기술혁신 지원사업", category: "기술", agency: "산업통상자원부", deadline: "2025-02-15", url: "https://www.bizinfo.go.kr", score: 7, reason: "탄소중립 관련 기술 개발을 지원합니다." }
-                ]
-            }
-        };
-
-        let selectedSample = null;
-
-        function setMode(mode) {
-            currentMode = mode;
-            document.getElementById('demoBtn').classList.toggle('active', mode === 'demo');
-            document.getElementById('realBtn').classList.toggle('active', mode === 'real');
-            document.getElementById('apiKeySection').style.display = mode === 'real' ? 'block' : 'none';
+        function loadSample(key) {
+            document.getElementById('proposalText').value = samples[key] || '';
         }
 
-        function selectSample(num) {
-            selectedSample = num;
-            document.querySelectorAll('.sample-card').forEach((card, idx) => {
-                card.classList.toggle('selected', idx + 1 === num);
-            });
-            document.getElementById('businessPlan').value = samples[num];
-        }
+        async function analyzeN2B() {
+            const apiKey = document.getElementById('apiKey').value;
+            const proposalText = document.getElementById('proposalText').value;
 
-        async function analyze() {
-            const businessPlan = document.getElementById('businessPlan').value.trim();
-            if (!businessPlan) {
-                alert('사업계획을 입력해주세요.');
-                return;
-            }
+            if (!apiKey) { alert('API Key를 입력해주세요.'); return; }
+            if (!proposalText) { alert('사업계획서를 입력해주세요.'); return; }
 
-            const apiKey = document.getElementById('apiKey').value.trim();
-            if (currentMode === 'real' && !apiKey) {
-                alert('API 키를 입력해주세요.');
-                return;
-            }
-
-            document.getElementById('analyzeBtn').disabled = true;
-            document.getElementById('loadingSection').classList.add('show');
-            document.getElementById('resultSection').classList.remove('show');
-            document.getElementById('demoNotice').classList.remove('show');
+            showLoading(true);
 
             try {
-                if (currentMode === 'demo' && selectedSample) {
-                    await new Promise(resolve => setTimeout(resolve, 2000));
-                    const demoResult = demoResults[selectedSample];
-                    displayResults(demoResult.n2b, demoResult.policies);
-                    document.getElementById('demoNotice').classList.add('show');
-                } else {
-                    const analyzeResponse = await fetch(BACKEND_URL + '/analyze', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            proposalText: businessPlan,
-                            apiKey: apiKey
-                        })
-                    });
+                const response = await fetch(`${API_BASE}/analyze`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ apiKey, proposalText })
+                });
 
-                    if (!analyzeResponse.ok) throw new Error('N2B 분석 실패');
-                    const analyzeResult = await analyzeResponse.json();
-
-                    const matchResponse = await fetch(BACKEND_URL + '/match', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            n2bAnalysis: analyzeResult,
-                            apiKey: apiKey
-                        })
-                    });
-
-                    if (!matchResponse.ok) throw new Error('정책 매칭 실패');
-                    const matchResult = await matchResponse.json();
-                    displayResults(analyzeResult, matchResult.matches);
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.detail || '분석 실패');
                 }
+
+                n2bAnalysis = data;
+
+                document.getElementById('resultN').textContent = data.N || '분석 결과 없음';
+                document.getElementById('resultB').textContent = data.B || '분석 결과 없음';
+                document.getElementById('resultC').textContent = data.C || '분석 결과 없음';
+
+                const keywordsDiv = document.getElementById('resultKeywords');
+                const keywords = data.keywords || [];
+                if (keywords.length > 0) {
+                    keywordsDiv.innerHTML = keywords.map(k => 
+                        `<span class="px-3 py-1 bg-purple-200 text-purple-800 rounded-full text-sm">${k}</span>`
+                    ).join('');
+                } else {
+                    keywordsDiv.innerHTML = '<span class="text-gray-500 text-sm">키워드 없음</span>';
+                }
+
+                document.getElementById('n2bResult').classList.remove('hidden');
+                document.getElementById('matchBtn').disabled = false;
+                document.getElementById('matchBtn').classList.remove('bg-gray-400');
+                document.getElementById('matchBtn').classList.add('bg-green-500');
+
             } catch (error) {
                 alert('분석 중 오류가 발생했습니다: ' + error.message);
             } finally {
-                document.getElementById('analyzeBtn').disabled = false;
-                document.getElementById('loadingSection').classList.remove('show');
+                showLoading(false);
             }
         }
 
-        function displayResults(n2b, policies) {
-            document.getElementById('resultN').textContent = n2b.N;
-            document.getElementById('resultB').textContent = n2b.B;
-            document.getElementById('resultC').textContent = n2b.C;
+        async function matchPrograms() {
+            const apiKey = document.getElementById('apiKey').value;
+            const region = document.getElementById('regionSelect').value;
 
-            const policyHTML = policies.map((policy, index) => `
-                <div class="policy-card">
-                    <div class="policy-header">
-                        <div class="policy-title">
-                            <span class="policy-rank">${index + 1}위.</span>
-                            ${policy.title}
+            if (!n2bAnalysis) { alert('먼저 N2B 분석을 수행해주세요.'); return; }
+
+            showLoading(true);
+
+            try {
+                const response = await fetch(`${API_BASE}/match`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ apiKey, n2bAnalysis, region })
+                });
+
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.detail || '매칭 실패');
+                }
+
+                document.getElementById('regionBadge').textContent = `📍 ${region === '전체' ? '전국' : region}`;
+
+                const listDiv = document.getElementById('programList');
+                const programs = data.programs || [];
+                
+                if (programs.length > 0) {
+                    listDiv.innerHTML = programs.map(p => `
+                        <div class="bg-white rounded-xl shadow-md p-4 card-hover transition">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs">${p.region || region}</span>
+                                <span class="px-2 py-1 bg-green-100 text-green-700 rounded text-xs">매칭 ${p.matchScore || 85}%</span>
+                            </div>
+                            <h3 class="font-bold text-gray-800">${p.name || '사업명 없음'}</h3>
+                            <p class="text-gray-600 text-sm">🏢 ${p.organization || '-'}</p>
+                            <p class="text-gray-600 text-sm">📅 마감: ${p.deadline || '-'}</p>
+                            <p class="text-gray-600 text-sm">💰 ${p.amount || '-'}</p>
+                            <p class="text-purple-600 text-sm mt-2">💡 ${p.matchReason || ''}</p>
+                            ${p.url ? `<a href="${p.url}" target="_blank" class="inline-block mt-2 px-4 py-2 bg-purple-500 text-white rounded-lg text-sm">상세보기 →</a>` : ''}
                         </div>
-                        <span class="match-score">매칭도 ${policy.score}/10</span>
-                    </div>
-                    <div class="policy-meta">
-                        <span class="policy-meta-item category">${policy.category}</span>
-                        <span class="policy-meta-item">🏢 ${policy.agency}</span>
-                        <span class="policy-meta-item deadline">📅 마감: ${policy.deadline}</span>
-                    </div>
-                    <div class="policy-reason">${policy.reason}</div>
-                    <a href="${policy.url}" target="_blank" class="policy-link">상세정보 보기 →</a>
-                </div>
-            `).join('');
+                    `).join('');
+                } else {
+                    listDiv.innerHTML = `
+                        <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-4 text-center">
+                            <p class="text-yellow-700">😅 매칭된 지원사업이 없습니다.</p>
+                            <p class="text-gray-600 text-sm mt-2">다른 지역이나 키워드로 다시 시도해보세요.</p>
+                            ${data.raw ? `<p class="text-xs text-gray-400 mt-2">Raw: ${data.raw.substring(0, 200)}...</p>` : ''}
+                        </div>
+                    `;
+                }
 
-            document.getElementById('policyResults').innerHTML = policyHTML;
-            document.getElementById('resultSection').classList.add('show');
+                document.getElementById('matchResult').classList.remove('hidden');
+
+            } catch (error) {
+                alert('매칭 중 오류가 발생했습니다: ' + error.message);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function showLoading(show) {
+            document.getElementById('loading').classList.toggle('hidden', !show);
         }
     </script>
 </body>
