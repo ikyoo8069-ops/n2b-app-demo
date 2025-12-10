@@ -19,14 +19,33 @@
     </header>
 
     <main class="container mx-auto px-4 py-6">
-        <!-- API Key -->
+        <!-- 모드 선택 -->
         <div class="bg-white rounded-xl shadow-md p-4 mb-4">
-            <label class="block text-sm font-medium text-gray-700 mb-2">🔑 Anthropic API Key</label>
-            <input type="password" id="apiKey" class="w-full px-4 py-3 border rounded-lg" placeholder="sk-ant-api...">
-            <p class="text-xs text-gray-500 mt-1">API 키는 <a href="https://console.anthropic.com" target="_blank" class="text-purple-600 underline">Anthropic Console</a>에서 발급받을 수 있습니다.</p>
+            <h2 class="text-lg font-bold text-gray-800 mb-3">🎯 시작하기</h2>
+            <div class="grid grid-cols-2 gap-4">
+                <button onclick="setMode('demo')" id="demoBtnMode" 
+                        class="p-4 border-2 border-purple-500 bg-purple-50 rounded-xl text-center hover:bg-purple-100 transition">
+                    <div class="text-2xl mb-2">🎮</div>
+                    <div class="font-bold text-purple-700">데모 체험</div>
+                    <div class="text-xs text-gray-500">API 키 없이 바로 체험</div>
+                </button>
+                <button onclick="setMode('real')" id="realBtnMode"
+                        class="p-4 border-2 border-gray-300 rounded-xl text-center hover:bg-gray-50 transition">
+                    <div class="text-2xl mb-2">🔬</div>
+                    <div class="font-bold text-gray-700">실제 분석</div>
+                    <div class="text-xs text-gray-500">본인 API 키로 실시간 검색</div>
+                </button>
+            </div>
         </div>
 
-        <!-- Region -->
+        <!-- API Key (실제 분석용) -->
+        <div id="apiKeySection" class="hidden bg-white rounded-xl shadow-md p-4 mb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-2">🔑 Anthropic API Key</label>
+            <input type="password" id="apiKey" class="w-full px-4 py-3 border rounded-lg" placeholder="sk-ant-api...">
+            <p class="text-xs text-gray-500 mt-1">API 키는 <a href="https://console.anthropic.com" target="_blank" class="text-purple-600 underline">Anthropic Console</a>에서 발급</p>
+        </div>
+
+        <!-- 지역 선택 -->
         <div class="bg-white rounded-xl shadow-md p-4 mb-4">
             <label class="block text-sm font-medium text-gray-700 mb-2">📍 지역 선택</label>
             <select id="regionSelect" class="w-full px-4 py-3 border rounded-lg bg-white">
@@ -56,23 +75,22 @@
             <label class="block text-sm font-medium text-gray-700 mb-2">📝 사업계획 입력</label>
             <p class="text-xs text-gray-500 mb-2">샘플을 선택하거나 직접 입력하세요:</p>
             <div class="flex flex-wrap gap-2 mb-3">
-                <button onclick="loadSample('health')" class="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm">🏥 AI 헬스케어</button>
-                <button onclick="loadSample('farm')" class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm">🌱 스마트팜</button>
-                <button onclick="loadSample('recycle')" class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm">♻️ 폐플라스틱 재활용</button>
+                <button onclick="loadSample('health')" class="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm hover:bg-purple-200">🏥 AI 헬스케어</button>
+                <button onclick="loadSample('farm')" class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm hover:bg-green-200">🌱 스마트팜</button>
+                <button onclick="loadSample('recycle')" class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm hover:bg-blue-200">♻️ 폐플라스틱 재활용</button>
             </div>
-            <textarea id="proposalText" rows="5" class="w-full px-4 py-3 border rounded-lg" placeholder="사업 아이디어를 입력하세요..."></textarea>
+            <textarea id="proposalText" rows="4" class="w-full px-4 py-3 border rounded-lg" placeholder="사업 아이디어를 입력하세요..."></textarea>
         </div>
 
-        <!-- 버튼 -->
-        <div class="flex gap-4 mb-6">
-            <button onclick="analyzeN2B()" class="flex-1 gradient-bg text-white py-4 rounded-xl font-bold">1️⃣ N2B 분석</button>
-            <button onclick="matchPrograms()" id="matchBtn" disabled class="flex-1 bg-gray-400 text-white py-4 rounded-xl font-bold disabled:opacity-50">2️⃣ 지원사업 매칭</button>
-        </div>
+        <!-- 분석 버튼 -->
+        <button onclick="runAnalysis()" class="w-full gradient-bg text-white py-4 rounded-xl font-bold text-lg mb-6 hover:opacity-90 transition">
+            🔍 N2B 분석 및 매칭 시작
+        </button>
 
         <!-- 로딩 -->
         <div id="loading" class="hidden text-center py-8">
             <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-purple-500 border-t-transparent"></div>
-            <p class="mt-4 text-gray-600">분석 중...</p>
+            <p class="mt-4 text-gray-600" id="loadingText">분석 중...</p>
         </div>
 
         <!-- N2B 결과 -->
@@ -108,133 +126,216 @@
         </div>
     </main>
 
+    <footer class="text-center py-4 text-gray-500 text-sm">
+        © 2025 N2B Framework by Brian Yoo
+    </footer>
+
     <script>
-        let n2bAnalysis = null;
+        let currentMode = 'demo';
         const API_BASE = 'https://n2b-backend.onrender.com';
 
+        // 샘플 데이터
         const samples = {
-            health: '저는 IoT 센서와 AI를 결합하여 토양, 기후, 작물 상태를 실시간 모니터링하고 최적의 재배 환경을 자동 제어하는 스마트팜 솔루션을 개발합니다.',
-            farm: '저는 IoT 센서와 AI를 결합하여 토양, 기후, 작물 상태를 실시간 모니터링하고 최적의 재배 환경을 자동 제어하는 스마트팜 솔루션을 개발합니다.',
-            recycle: 'AI 기반 폐플라스틱 자동 분류 시스템을 개발하여 재활용률을 높이고 환경오염을 줄이는 솔루션을 제공합니다.'
+            health: {
+                text: 'AI 기반 개인 맞춤형 건강관리 플랫폼을 개발합니다. 웨어러블 기기 데이터와 건강검진 결과를 분석하여 질병 예방 및 건강 개선 솔루션을 제공합니다.',
+                demo: {
+                    N: "현재 건강관리 서비스는 개인화되지 않고, 사후 치료 중심이며, 데이터 활용이 제한적입니다.",
+                    B: "AI가 개인별 건강 데이터를 분석하여 맞춤형 예방 솔루션을 제공하는 플랫폼을 구축합니다.",
+                    C: "예방의료 시장이 급성장 중이며, 의료비 절감과 삶의 질 향상에 기여할 수 있습니다.",
+                    keywords: ["AI헬스케어", "디지털헬스", "예방의료"],
+                    programs: [
+                        { name: "2025년 AI 의료 실증사업", organization: "과학기술정보통신부", region: "전국", deadline: "2025.03.31", amount: "최대 5억원", matchScore: 92, matchReason: "AI 기반 헬스케어 솔루션과 정확히 매칭", url: "https://www.bizinfo.go.kr" },
+                        { name: "디지털헬스케어 스타트업 지원", organization: "보건복지부", region: "전국", deadline: "2025.02.28", amount: "최대 3억원", matchScore: 88, matchReason: "건강관리 플랫폼 개발 지원", url: "https://www.bizinfo.go.kr" },
+                        { name: "바이오헬스 R&D 지원사업", organization: "중소벤처기업부", region: "전국", deadline: "2025.04.15", amount: "최대 2억원", matchScore: 78, matchReason: "헬스케어 기술 R&D 지원", url: "https://www.bizinfo.go.kr" }
+                    ]
+                }
+            },
+            farm: {
+                text: '저는 IoT 센서와 AI를 결합하여 토양, 기후, 작물 상태를 실시간 모니터링하고 최적의 재배 환경을 자동 제어하는 스마트팜 솔루션을 개발합니다.',
+                demo: {
+                    N: "기존 농업은 기후 변화에 취약하고 노동력 의존도가 높으며, 생산성 예측이 어렵습니다.",
+                    B: "IoT 센서 기반 스마트팜으로 자동화된 재배환경 제어 및 AI 예측 시스템을 구축합니다.",
+                    C: "농업 생산성 30% 향상, 인건비 절감, 기후 리스크 최소화가 가능합니다.",
+                    keywords: ["스마트팜", "IoT", "AI농업"],
+                    programs: [
+                        { name: "2025년 스마트팜 확산사업", organization: "농림축산식품부", region: "전국", deadline: "2025.03.15", amount: "최대 3억원", matchScore: 95, matchReason: "스마트팜 기술 개발과 직접 연관", url: "https://www.bizinfo.go.kr" },
+                        { name: "농식품 ICT 융복합 지원사업", organization: "농림축산식품부", region: "전국", deadline: "2025.02.20", amount: "최대 2억원", matchScore: 90, matchReason: "IoT 기반 농업 기술 지원", url: "https://www.bizinfo.go.kr" },
+                        { name: "청년농업인 창업지원", organization: "농림축산식품부", region: "전국", deadline: "2025.04.30", amount: "최대 1억원", matchScore: 72, matchReason: "농업 분야 창업 지원", url: "https://www.bizinfo.go.kr" }
+                    ]
+                }
+            },
+            recycle: {
+                text: 'AI 기반 폐플라스틱 자동 분류 시스템을 개발하여 재활용률을 높이고 환경오염을 줄이는 솔루션을 제공합니다.',
+                demo: {
+                    N: "현재 폐플라스틱 분류는 수작업 의존도가 높고, 재활용률이 낮으며, 환경오염이 심각합니다.",
+                    B: "AI 비전 기술로 폐플라스틱을 자동 분류하여 재활용 효율을 극대화합니다.",
+                    C: "ESG 경영 트렌드와 정부 탄소중립 정책에 부합하며, 재활용 산업 성장이 예상됩니다.",
+                    keywords: ["재활용", "AI분류", "탄소중립"],
+                    programs: [
+                        { name: "2025년 탄소중립 기술개발 사업", organization: "환경부", region: "전국", deadline: "2025.03.20", amount: "최대 5억원", matchScore: 94, matchReason: "탄소중립 및 재활용 기술과 직접 연관", url: "https://www.bizinfo.go.kr" },
+                        { name: "순환경제 혁신기업 지원", organization: "환경부", region: "전국", deadline: "2025.02.28", amount: "최대 3억원", matchScore: 91, matchReason: "재활용 기술 혁신 지원", url: "https://www.bizinfo.go.kr" },
+                        { name: "AI 제조혁신 지원사업", organization: "중소벤처기업부", region: "전국", deadline: "2025.04.10", amount: "최대 2억원", matchScore: 75, matchReason: "AI 기반 제조/분류 기술 지원", url: "https://www.bizinfo.go.kr" }
+                    ]
+                }
+            }
         };
 
-        function loadSample(key) {
-            document.getElementById('proposalText').value = samples[key] || '';
+        // 모드 설정
+        function setMode(mode) {
+            currentMode = mode;
+            document.getElementById('demoBtnMode').classList.toggle('border-purple-500', mode === 'demo');
+            document.getElementById('demoBtnMode').classList.toggle('bg-purple-50', mode === 'demo');
+            document.getElementById('demoBtnMode').classList.toggle('border-gray-300', mode !== 'demo');
+            document.getElementById('realBtnMode').classList.toggle('border-purple-500', mode === 'real');
+            document.getElementById('realBtnMode').classList.toggle('bg-purple-50', mode === 'real');
+            document.getElementById('realBtnMode').classList.toggle('border-gray-300', mode !== 'real');
+            document.getElementById('apiKeySection').classList.toggle('hidden', mode === 'demo');
         }
 
-        async function analyzeN2B() {
-            const apiKey = document.getElementById('apiKey').value;
+        // 샘플 로드
+        function loadSample(key) {
+            document.getElementById('proposalText').value = samples[key]?.text || '';
+        }
+
+        // 분석 실행
+        async function runAnalysis() {
             const proposalText = document.getElementById('proposalText').value;
+            if (!proposalText) {
+                alert('사업계획서를 입력해주세요.');
+                return;
+            }
 
-            if (!apiKey) { alert('API Key를 입력해주세요.'); return; }
-            if (!proposalText) { alert('사업계획서를 입력해주세요.'); return; }
+            if (currentMode === 'demo') {
+                runDemoAnalysis(proposalText);
+            } else {
+                await runRealAnalysis(proposalText);
+            }
+        }
 
-            showLoading(true);
+        // 데모 분석
+        function runDemoAnalysis(proposalText) {
+            showLoading(true, '데모 결과 로딩 중...');
+
+            // 어떤 샘플과 매칭되는지 찾기
+            let matchedSample = null;
+            for (const key in samples) {
+                if (proposalText.includes(samples[key].text.substring(0, 20)) || 
+                    proposalText.toLowerCase().includes(key)) {
+                    matchedSample = samples[key].demo;
+                    break;
+                }
+            }
+
+            // 매칭되는 샘플 없으면 기본값
+            if (!matchedSample) {
+                matchedSample = samples.farm.demo;
+            }
+
+            setTimeout(() => {
+                displayResults(matchedSample);
+                showLoading(false);
+            }, 1500);
+        }
+
+        // 실제 분석
+        async function runRealAnalysis(proposalText) {
+            const apiKey = document.getElementById('apiKey').value;
+            if (!apiKey) {
+                alert('API Key를 입력해주세요.');
+                return;
+            }
+
+            showLoading(true, 'AI가 분석 중...');
 
             try {
-                const response = await fetch(`${API_BASE}/analyze`, {
+                // N2B 분석
+                const analyzeRes = await fetch(`${API_BASE}/analyze`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ apiKey, proposalText })
                 });
-
-                const data = await response.json();
                 
-                if (!response.ok) {
-                    throw new Error(data.detail || '분석 실패');
+                if (!analyzeRes.ok) {
+                    const err = await analyzeRes.json();
+                    throw new Error(err.detail || '분석 실패');
                 }
 
-                n2bAnalysis = data;
+                const n2bResult = await analyzeRes.json();
 
-                document.getElementById('resultN').textContent = data.N || '분석 결과 없음';
-                document.getElementById('resultB').textContent = data.B || '분석 결과 없음';
-                document.getElementById('resultC').textContent = data.C || '분석 결과 없음';
-
-                const keywordsDiv = document.getElementById('resultKeywords');
-                const keywords = data.keywords || [];
-                if (keywords.length > 0) {
-                    keywordsDiv.innerHTML = keywords.map(k => 
-                        `<span class="px-3 py-1 bg-purple-200 text-purple-800 rounded-full text-sm">${k}</span>`
-                    ).join('');
-                } else {
-                    keywordsDiv.innerHTML = '<span class="text-gray-500 text-sm">키워드 없음</span>';
-                }
-
-                document.getElementById('n2bResult').classList.remove('hidden');
-                document.getElementById('matchBtn').disabled = false;
-                document.getElementById('matchBtn').classList.remove('bg-gray-400');
-                document.getElementById('matchBtn').classList.add('bg-green-500');
-
-            } catch (error) {
-                alert('분석 중 오류가 발생했습니다: ' + error.message);
-            } finally {
-                showLoading(false);
-            }
-        }
-
-        async function matchPrograms() {
-            const apiKey = document.getElementById('apiKey').value;
-            const region = document.getElementById('regionSelect').value;
-
-            if (!n2bAnalysis) { alert('먼저 N2B 분석을 수행해주세요.'); return; }
-
-            showLoading(true);
-
-            try {
-                const response = await fetch(`${API_BASE}/match`, {
+                // 매칭
+                const region = document.getElementById('regionSelect').value;
+                const matchRes = await fetch(`${API_BASE}/match`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ apiKey, n2bAnalysis, region })
+                    body: JSON.stringify({ apiKey, n2bAnalysis: n2bResult, region })
                 });
 
-                const data = await response.json();
-                
-                if (!response.ok) {
-                    throw new Error(data.detail || '매칭 실패');
-                }
+                const matchResult = await matchRes.json();
 
-                document.getElementById('regionBadge').textContent = `📍 ${region === '전체' ? '전국' : region}`;
-
-                const listDiv = document.getElementById('programList');
-                const programs = data.programs || [];
-                
-                if (programs.length > 0) {
-                    listDiv.innerHTML = programs.map(p => `
-                        <div class="bg-white rounded-xl shadow-md p-4 card-hover transition">
-                            <div class="flex items-center gap-2 mb-2">
-                                <span class="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs">${p.region || region}</span>
-                                <span class="px-2 py-1 bg-green-100 text-green-700 rounded text-xs">매칭 ${p.matchScore || 85}%</span>
-                            </div>
-                            <h3 class="font-bold text-gray-800">${p.name || '사업명 없음'}</h3>
-                            <p class="text-gray-600 text-sm">🏢 ${p.organization || '-'}</p>
-                            <p class="text-gray-600 text-sm">📅 마감: ${p.deadline || '-'}</p>
-                            <p class="text-gray-600 text-sm">💰 ${p.amount || '-'}</p>
-                            <p class="text-purple-600 text-sm mt-2">💡 ${p.matchReason || ''}</p>
-                            ${p.url ? `<a href="${p.url}" target="_blank" class="inline-block mt-2 px-4 py-2 bg-purple-500 text-white rounded-lg text-sm">상세보기 →</a>` : ''}
-                        </div>
-                    `).join('');
-                } else {
-                    listDiv.innerHTML = `
-                        <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-4 text-center">
-                            <p class="text-yellow-700">😅 매칭된 지원사업이 없습니다.</p>
-                            <p class="text-gray-600 text-sm mt-2">다른 지역이나 키워드로 다시 시도해보세요.</p>
-                            ${data.raw ? `<p class="text-xs text-gray-400 mt-2">Raw: ${data.raw.substring(0, 200)}...</p>` : ''}
-                        </div>
-                    `;
-                }
-
-                document.getElementById('matchResult').classList.remove('hidden');
+                displayResults({
+                    ...n2bResult,
+                    programs: matchResult.programs || []
+                });
 
             } catch (error) {
-                alert('매칭 중 오류가 발생했습니다: ' + error.message);
+                alert('오류: ' + error.message);
             } finally {
                 showLoading(false);
             }
         }
 
-        function showLoading(show) {
-            document.getElementById('loading').classList.toggle('hidden', !show);
+        // 결과 표시
+        function displayResults(data) {
+            const region = document.getElementById('regionSelect').value;
+
+            document.getElementById('resultN').textContent = data.N || '';
+            document.getElementById('resultB').textContent = data.B || '';
+            document.getElementById('resultC').textContent = data.C || '';
+
+            const keywords = data.keywords || [];
+            document.getElementById('resultKeywords').innerHTML = keywords.map(k =>
+                `<span class="px-3 py-1 bg-purple-200 text-purple-800 rounded-full text-sm">${k}</span>`
+            ).join('');
+
+            document.getElementById('n2bResult').classList.remove('hidden');
+
+            // 매칭 결과
+            document.getElementById('regionBadge').textContent = `📍 ${region === '전체' ? '전국' : region}`;
+            
+            const programs = data.programs || [];
+            const listDiv = document.getElementById('programList');
+
+            if (programs.length > 0) {
+                listDiv.innerHTML = programs.map(p => `
+                    <div class="bg-white rounded-xl shadow-md p-4 card-hover transition">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs">${p.region || region}</span>
+                            <span class="px-2 py-1 bg-green-100 text-green-700 rounded text-xs">매칭 ${p.matchScore || 85}%</span>
+                        </div>
+                        <h3 class="font-bold text-gray-800">${p.name || '사업명'}</h3>
+                        <p class="text-gray-600 text-sm">🏢 ${p.organization || '-'}</p>
+                        <p class="text-gray-600 text-sm">📅 마감: ${p.deadline || '-'}</p>
+                        <p class="text-gray-600 text-sm">💰 ${p.amount || '-'}</p>
+                        <p class="text-purple-600 text-sm mt-2">💡 ${p.matchReason || ''}</p>
+                        ${p.url ? `<a href="${p.url}" target="_blank" class="inline-block mt-2 px-4 py-2 bg-purple-500 text-white rounded-lg text-sm hover:bg-purple-600">상세보기 →</a>` : ''}
+                    </div>
+                `).join('');
+            } else {
+                listDiv.innerHTML = `<div class="bg-yellow-50 border border-yellow-200 rounded-xl p-4 text-center">
+                    <p class="text-yellow-700">매칭된 지원사업이 없습니다.</p>
+                </div>`;
+            }
+
+            document.getElementById('matchResult').classList.remove('hidden');
         }
+
+        function showLoading(show, text = '분석 중...') {
+            document.getElementById('loading').classList.toggle('hidden', !show);
+            document.getElementById('loadingText').textContent = text;
+        }
+
+        // 초기화
+        setMode('demo');
     </script>
 </body>
 </html>
